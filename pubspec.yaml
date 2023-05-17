@@ -41,6 +41,7 @@ dependencies:
   get: ^4.6.5
   eval_widgets:
     path: ./eval_widgets
+  dart_eval: ^0.6.0
 
 dev_dependencies:
   flutter_test:

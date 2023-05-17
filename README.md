@@ -1,6 +1,6 @@
-# flutter_eval_demo
+# flutter_eval_demo built for RustDesk
 
-A new Flutter project.
+This is the testing project which shows how to write an user interface(UI) for plugins of `RustDesk`.
 
 ## Getting Started
 

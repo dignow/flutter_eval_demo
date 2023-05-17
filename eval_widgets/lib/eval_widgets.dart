@@ -12,29 +12,27 @@ Widget testCenterText(BuildContext context) {
 }
 
 @RuntimeOverride("#centerTextWithParam")
-Widget testCenterTextWithParam(BuildContext context, dynamic param) {
+Widget testCenterTextWithParam(BuildContext context, String param) {
   return Center(
-    child: Text("This is a centered text with param: $param"),
+    child: Text("This is a centered text with string: $param", style: Theme.of(context).textTheme.bodyMedium,),
   );
 }
 
 @RuntimeOverride("#myForm")
-Widget myForm(BuildContext context, Api api) {
-  return MyForm(api: api);
+Widget myForm(BuildContext context, Api api, void Function() cb) {
+  return MyForm(cb);
 }
 
 class MyForm extends StatelessWidget {
-  final Api api;
-  const MyForm({super.key, required this.api});
+  final Function() cb;
+  const MyForm(this.cb, {super.key});
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
       itemCount: 100,
       itemBuilder: (context, index) => ListTile(
-        onTap: (){
-          api.toast();
-        },
+        onTap: cb,
         title: Text("ListTile $index"),),
     );
   }

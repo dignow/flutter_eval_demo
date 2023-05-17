@@ -90,7 +90,7 @@ packages:
     source: hosted
     version: "1.0.5"
   dart_eval:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: dart_eval
       sha256: "9d11db96f2b396d0ad09504182e6e17d05e2fb22e92ec3aa21d4fde744c83171"

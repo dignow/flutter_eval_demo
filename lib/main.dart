@@ -1,18 +1,27 @@
+import 'package:dart_eval/dart_eval_bridge.dart';
+import 'package:dart_eval/stdlib/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_eval/flutter_eval.dart';
+import 'package:flutter_eval/widgets.dart';
 import 'package:flutter_eval_demo/api_impl.dart';
+import 'package:get/route_manager.dart';
 
 final api = ApiImpl();
 final demoMaps = <String, dynamic>{
-  "#centerText": {
-    "params": []
-  },
+  "#centerText": {"params": [], 'func': "testCenterText", "needContextFirst": true,},
   "#centerTextWithParam": {
-    "params": ["testString"]
+    "params": [$String("testString")],
+    "func": "testCenterTextWithParam",
+    "needContextFirst": true,
   },
   "#myForm": {
-    "params": [api]
+    "params": [$Function((runtime, target, args) {
+      api.toast();
+      return null;
+    }), null],
+    "func": "MyForm.",
+    "needContextFirst": false,
   }
 };
 
@@ -26,7 +35,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
         // This is the theme of your application.
@@ -65,58 +74,81 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
-
-  Uri? uri;
-  String func = demoMaps.keys.first;
-  Future
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    final rootBundle.load("assets/evc/version_1.evc");
-  }
+  String func = "";
+  final keys = demoMaps.keys.toList(growable: false);
 
   @override
   Widget build(BuildContext context) {
-
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    final keys = demoMaps.keys.toList(growable: false);
-
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Row(
-        children: [Column(
-          children: [
-            Text("EVC menu"),
-            Expanded(child: ListView.builder(itemBuilder: (context, index) {
-              final item = demoMaps[keys[index]];
-              return ListTile(onTap: () {
-                setState(() {
-                  func = keys[index];
-                });
-              } , title: Text(keys[index]),);
-            }, itemCount: keys.length,))
-          ],
-        ), Flexible(child: Column(
-          children: [
-            Expanded(child: uri == null? const Center(child: Text("Eval not loaded"),) : RuntimeWidget(
-              uri: Uri.dataFromBytes(bytes),
-              id: func,
-              args: demoMaps[func]['params'],
-              childBuilder: ((context) => )))
-          ],
-        ))],
-      )
-    );
+        // appBar: AppBar(
+        //   // Here we take the value from the MyHomePage object that was created by
+        //   // the App.build method, and use it to set our appbar title.
+        //   title: Text(widget.title),
+        // ),
+        body: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              Flexible(
+                flex: 1,
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text("EVC menu", style: Theme.of(context).textTheme.titleLarge,),
+                      ],
+                    ),
+                    const SizedBox(height: 8.0,),
+                    Expanded(
+                        child: ListView.builder(
+                      itemBuilder: (context, index) {
+                        final item = demoMaps[keys[index]];
+                        return ListTile(
+                          onTap: () {
+                            setState(() {
+                              func = keys[index];
+                            });
+                          },
+                          title: Text(keys[index]),
+                        );
+                      },
+                      itemCount: keys.length,
+                    ))
+                  ],
+                ),
+              ),
+              Flexible(
+                flex: 3,
+                  child: Column(
+                children: [
+                  Expanded(
+                    child: FutureBuilder(
+                      future: rootBundle.load("assets/evc/version_1.evc"),
+                      builder: (context, data) {
+                        if (data.hasData) {
+                          return func.isEmpty
+                              ? const Center(
+                                  child: Text("Please select one of dynamic widget"),
+                                )
+                              : RuntimeWidget(
+                                  uri: Uri(scheme: "asset", path: "assets/evc/version_1.evc"),
+                                  args: demoMaps[func]['needContextFirst'] ? 
+                                  [$BuildContext.wrap(context), ...demoMaps[func]['params']]
+                                   : demoMaps[func]['params'], library: 'package:eval_widgets/eval_widgets.dart', function: demoMaps[func]['func'],
+                                );
+                        } else {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+                      },
+                    ),
+                  )
+                ],
+              ))
+            ],
+          ),
+        ));
   }
 }
